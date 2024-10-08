@@ -1,0 +1,51 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { CreateAuthDto } from './dto/create-auth.dto';
+import { User } from '../users/entities/user.entity';
+
+describe('AuthController', () => {
+  let authController: AuthController;
+  let authService: AuthService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [AuthController],
+      providers: [
+        {
+          provide: AuthService,
+          useValue: {
+            register: jest.fn(),
+          },
+        },
+      ],
+    }).compile();
+
+    authController = module.get<AuthController>(AuthController);
+    authService = module.get<AuthService>(AuthService);
+  });
+
+
+  it('should be defined', () => {
+    expect(authController).toBeDefined();
+  });
+   describe('register', () => {
+     it('should call register and return a user', async () => {
+       const createAuthDto: CreateAuthDto = {
+         firstName: 'Test Category',
+         email: '',
+         username: '',
+         password: '',
+         lastName: '',
+       };
+       const result = {
+         id: '123e4567-e89b-12d3-a456-426614174001',
+         ...createAuthDto,
+       } as unknown as User;
+
+       jest.spyOn(authService, 'register').mockResolvedValue(result);
+
+       expect(await authController.register(createAuthDto)).toBe(result);
+     });
+   });
+});
