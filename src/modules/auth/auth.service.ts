@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CheckUserDataDto } from './dto/check-user-data.dto';
+import { isEmail } from 'class-validator';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +18,12 @@ export class AuthService {
    */
   async register(createAuthDto: CreateAuthDto): Promise<User> {
     try {
+      if (typeof createAuthDto.email !== 'string') {
+        throw new BadRequestException('Email should be string');
+      }
+      if (!isEmail(createAuthDto.email)) {
+        throw new BadRequestException('invalid email format')
+      }
       const user = this.authRepository.create({
         lastName: createAuthDto.lastName,
         firstName: createAuthDto.firstName,
