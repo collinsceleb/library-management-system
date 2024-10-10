@@ -1,9 +1,8 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import * as argon2 from 'argon2';
-import { create } from "domain";
 import { ApiProperty } from "@nestjs/swagger";
-import { RefreshToken } from "src/modules/refresh-tokens/entities/refresh-token.entity";
-import { Device } from "src/modules/devices/entities/device.entity";
+import { RefreshToken } from "../../refresh-tokens/entities/refresh-token.entity";
+import { Device } from "../../devices/entities/device.entity";
 
 @Entity('users')
 export class User {
