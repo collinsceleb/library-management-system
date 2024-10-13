@@ -123,7 +123,7 @@ export class AuthService {
 
       // Payload for the jwt
       const payload: JwtPayload = {
-        sub: user.id,
+        sub: user.id as unknown as User,
         email: user.email,
         jwtId: jwtId,
       };
@@ -212,12 +212,14 @@ export class AuthService {
     try {
       const { refreshToken } = createRefreshTokenDataDto;
       const payload: JwtPayload = this.jwtService.verify(refreshToken);
+      
       const device = await this.deviceRepository.findOne({
         where: {
           uniqueDeviceId: uniqueDeviceId,
-          user: payload.sub as unknown as User,
+          user: payload.sub.id as unknown as User,
         },
       });
+      
       if (!device) {
         throw new NotFoundException('Device not found');
       }
@@ -270,10 +272,10 @@ export class AuthService {
         uniqueDeviceId,
       };
     } catch (error) {
-      console.error('Error refreshing tokens:', error.message);
+      console.error('Error refreshing tokens:', error);
       throw new InternalServerErrorException(
         'An error occurred while refreshing tokens. Please check server logs for details.',
-        error.message,
+        error,
       );
     }
   }
