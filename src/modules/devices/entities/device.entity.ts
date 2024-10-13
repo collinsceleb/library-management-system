@@ -67,7 +67,7 @@ export class Device {
     description: 'The city where the device is located.',
     type: String,
   })
-  @Column()
+  @Column({nullable: true})
   city: string;
 
   @ApiProperty({
@@ -75,7 +75,7 @@ export class Device {
     description: 'The region where the device is located.',
     type: String,
   })
-  @Column()
+  @Column({nullable: true})
   region: string;
 
   @ApiProperty({
@@ -83,7 +83,7 @@ export class Device {
     description: 'The country where the device is located.',
     type: String,
   })
-  @Column()
+  @Column({nullable: true})
   country: string;
 
   @ApiProperty({
@@ -91,7 +91,7 @@ export class Device {
     description: 'The latitude of the device location.',
     type: Number,
   })
-  @Column()
+  @Column({nullable: true})
   latitude: number;
 
   @ApiProperty({
@@ -99,6 +99,6 @@ export class Device {
     description: 'The longitude of the device location.',
     type: Number,
   })
-  @Column()
+  @Column({nullable: true})
   longitude: number;
 }
