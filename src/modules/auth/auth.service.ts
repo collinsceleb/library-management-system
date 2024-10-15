@@ -23,6 +23,7 @@ import { LoginDataDto } from './dto/login-data.dto';
 import { JwtPayload } from '../../common/interface/jwt-payload/jwt-payload.interface';
 import { CreateRefreshTokenDataDto } from './dto/create-refresh-token-data.dto';
 import { TokenResponse } from 'src/common/interface/token-response/token-response.interface';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class AuthService {
@@ -211,15 +212,35 @@ export class AuthService {
   ): Promise<TokenResponse> {
     try {
       const { refreshToken } = createRefreshTokenDataDto;
+      if (typeof refreshToken !== 'string') {
+        throw new BadRequestException('Invalid refresh token format');
+      }
       const payload: JwtPayload = this.jwtService.verify(refreshToken);
-      
+      if (!payload) {
+        throw new BadRequestException('Invalid refresh token');
+      }
+      if (typeof payload.sub.id !== 'string') {
+        throw new BadRequestException(
+          'Invalid user ID format. User ID should be a string',
+        );
+      }
+      if (typeof uniqueDeviceId !== 'string') {
+        throw new BadRequestException(
+          'Invalid device ID format. Device ID should be a string',
+        );
+      }
+      const isRevoked = await this.checkTokenRevocation(refreshToken);
+      if (isRevoked) {
+        throw new BadRequestException('Refresh token has been revoked. Please login again.');
+      }
+      const tokenDocument = await this.findToken(refreshToken)
       const device = await this.deviceRepository.findOne({
         where: {
           uniqueDeviceId: uniqueDeviceId,
           user: payload.sub.id as unknown as User,
         },
       });
-      
+
       if (!device) {
         throw new NotFoundException('Device not found');
       }
@@ -246,6 +267,7 @@ export class AuthService {
           longitude: location.longitude,
         },
       );
+      await this.revokeToken(tokenDocument.token)
       const newJwtId = crypto.randomUUID();
       const newPayload: JwtPayload = {
         sub: payload.sub,
@@ -280,6 +302,117 @@ export class AuthService {
     }
   }
 
+  async findToken(refreshToken: string): Promise<RefreshToken> {
+    try {
+      if (typeof refreshToken !== 'string') {
+        throw new BadRequestException(
+          'Invalid token format. Token should be a string',
+        );
+      }
+      const payload: JwtPayload = this.jwtService.decode(refreshToken);
+      if (!payload) {
+        throw new BadRequestException('Invalid token');
+      }
+      const findToken = await this.refreshTokenRepository.findOne({
+        where: { token: refreshToken },
+        // relations: ['device', 'user'],
+      });
+      return findToken;
+    } catch (error) {
+      console.error('Error finding token:', error);
+      throw new InternalServerErrorException('Failed to find token', error);
+    }
+  }
+
+  /**
+   * Function to revoke a refresh token
+   * @param refreshToken
+   * @returns findToken
+   */
+  async revokeToken(refreshToken: string): Promise<RefreshToken | null> {
+    try {
+      if (typeof refreshToken !== 'string') {
+        throw new BadRequestException(
+          'Invalid token format. Token should be a string',
+        );
+      }
+      const payload: JwtPayload = this.jwtService.decode(refreshToken);
+      if (!payload) {
+        throw new BadRequestException('Invalid token');
+      }
+      const tokenDocument = await this.findToken(refreshToken);
+      if (!tokenDocument) {
+        throw new NotFoundException('Token not found');
+      }
+      if (tokenDocument.isRevoked) {
+        throw new BadRequestException('Token is already revoked');
+      }
+      tokenDocument.isRevoked = true;
+      tokenDocument.isActive = false;
+      await this.refreshTokenRepository.save(tokenDocument);
+      return tokenDocument;
+    } catch (error) {
+      console.error('Error revoking token:', error);
+      throw new InternalServerErrorException(
+        'An error occurred while revoking token. Please check server logs for details.',
+        error.message,
+      );
+    }
+  }
+  async removeRevokedTokens(): Promise<number> {
+    try {
+      const result = await this.refreshTokenRepository.delete({
+        isRevoked: true,
+      });
+      const totalCount = result.affected || 0;
+      return totalCount;
+    } catch (error) {
+      console.error('Error revoking all tokens:', error);
+      throw new InternalServerErrorException(
+        'An error occurred while revoking all tokens. Please check server logs for details.',
+        error.message,
+      );
+    }
+  }
+  async checkTokenRevocation(refreshToken: string): Promise<boolean> {
+    try {
+      if (typeof refreshToken !== 'string') {
+        throw new BadRequestException(
+          'Invalid token format. Token should be a string',
+        );
+      }
+      const payload: JwtPayload = this.jwtService.decode(refreshToken);
+      if (!payload) {
+        throw new BadRequestException('Invalid token');
+      }
+      const tokenDocument = await this.findToken(refreshToken);
+      if (!tokenDocument) {
+        throw new NotFoundException('Token not found');
+      }
+      if (tokenDocument.isRevoked) {
+        throw new BadRequestException('Token is already revoked');
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking token revocation:', error);
+      throw new InternalServerErrorException(
+        'An error occurred while checking token revocation. Please check server logs for details.',
+        error.message,
+      );
+    }
+  }
+  /**
+   * Function to handle cron jobs
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async handleCron(): Promise<number> {
+    return await this.removeRevokedTokens();
+  }
+  /**
+   * Function to get user agent information
+   * @param userAgent
+   * @returns
+   */
   // Function to retrieve device information based on the user agent
   private getUserAgentInfo(userAgent: string) {
     try {

@@ -4,6 +4,7 @@ import { User } from '../../users/entities/user.entity';
 import {
   Column,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -22,6 +23,7 @@ export class RefreshToken {
   @ApiProperty()
   @ManyToOne(() => User, (user) => user.refreshTokens)
   @JoinColumn({ name: 'user_id' })
+  @Index('user_id_idx')
   user: User;
 
   @ApiProperty()
@@ -31,10 +33,12 @@ export class RefreshToken {
 
   @ApiProperty()
   @Column({ name: 'is_active', default: true })
+  @Index('is_active_idx')
   isActive: boolean;
 
   @ApiProperty()
   @Column({ name: 'is_revoked', default: false })
+  @Index('is_revoked_idx')
   isRevoked: boolean;
 
   @ApiProperty()
