@@ -1,8 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { User } from '../users/entities/user.entity';
 import { LoginDataDto } from './dto/login-data.dto';
 import { Request } from 'express';
@@ -49,6 +60,18 @@ export class AuthController {
       uniqueDeviceId,
       request,
     );
+  }
+  @ApiBearerAuth()
+  @Post('revoke')
+  async revokeToken(@Body('refreshToken') refreshToken: string) {
+    return await this.authService.revokeToken(refreshToken);
+  }
+
+  @ApiBearerAuth()
+  @Delete('tokens/cleanup')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async cleanupTokens(): Promise<number> {
+    return await this.authService.handleCron();
   }
 
   @Get()

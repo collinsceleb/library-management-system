@@ -7,28 +7,13 @@ import { UpdateRefreshTokenDto } from './dto/update-refresh-token.dto';
 export class RefreshTokensController {
   constructor(private readonly refreshTokensService: RefreshTokensService) {}
 
-  @Post()
-  create(@Body() createRefreshTokenDto: CreateRefreshTokenDto) {
-    return this.refreshTokensService.create(createRefreshTokenDto);
+  @Patch('revoke-all-tokens-for-user/:userId')
+  async revokeAllTokensForUser(@Param('userId') userId: string) {
+    return await this.refreshTokensService.revokeAllTokensForUser(userId);
   }
 
-  @Get()
-  findAll() {
-    return this.refreshTokensService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.refreshTokensService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRefreshTokenDto: UpdateRefreshTokenDto) {
-    return this.refreshTokensService.update(+id, updateRefreshTokenDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.refreshTokensService.remove(+id);
+  @Patch('revoke-all-tokens')
+  async revokeAllTokens() {
+    return await this.refreshTokensService.revokeAllTokens();
   }
 }
