@@ -1,13 +1,26 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import * as argon2 from 'argon2';
-import { ApiProperty } from "@nestjs/swagger";
-import { RefreshToken } from "../../refresh-tokens/entities/refresh-token.entity";
-import { Device } from "../../devices/entities/device.entity";
+import { ApiProperty } from '@nestjs/swagger';
+import { RefreshToken } from '../../refresh-tokens/entities/refresh-token.entity';
+import { Device } from '../../devices/entities/device.entity';
+import { Role } from '../../roles/entities/role.entity';
+import { Permission } from '../../permissions/entities/permission.entity';
 
 @Entity('users')
 export class User {
   @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174001' })
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid', { name: 'id', primaryKeyConstraintName: 'PK_user_id' })
   id: string;
 
   @ApiProperty({ example: 'John' })
@@ -69,6 +82,45 @@ export class User {
   @ApiProperty()
   @OneToMany(() => Device, (device) => device.user)
   devices: Device[];
+
+  @ApiProperty()
+  @ManyToOne(() => Role, (role) => role.users)
+  @JoinColumn({ name: 'role_id', foreignKeyConstraintName: 'FK_user_role_id' })
+  role: Role;
+
+  @ApiProperty()
+  @ManyToMany(() => Permission)
+  @JoinTable({
+    name: 'user_permissions',
+    joinColumn: {
+      name: 'user_id',
+      referencedColumnName: 'id',
+      foreignKeyConstraintName: 'fk_user_permissions_user_id',
+    },
+    inverseJoinColumn: {
+      name: 'permission_id',
+      referencedColumnName: 'id',
+      foreignKeyConstraintName: 'fk_user_permissions_permission_id',
+    },
+  })
+  permissions: Permission[];
+
+  @ApiProperty()
+  @ManyToMany(() => Permission)
+  @JoinTable({
+    name: 'user_denied_permissions',
+    joinColumn: {
+      name: 'user_id',
+      referencedColumnName: 'id',
+      foreignKeyConstraintName: 'FK_user_denied_permissions_user_id',
+    },
+    inverseJoinColumn: {
+      name: 'permission_id',
+      referencedColumnName: 'id',
+      foreignKeyConstraintName: 'FK_user_denied_permissions_permission_id',
+    },
+  })
+  deniedPermissions: Permission[];
 
   async hashPassword(): Promise<void> {
     this.password = await argon2.hash(this.password);
