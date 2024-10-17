@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './modules/users/users.module';
@@ -8,6 +8,7 @@ import { RefreshTokensModule } from './modules/refresh-tokens/refresh-tokens.mod
 import { ScheduleModule } from '@nestjs/schedule';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
+import { SeedingService } from './common/seeding/seeding.service';
 
 @Module({
   imports: [
@@ -40,6 +41,13 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
     PermissionsModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [SeedingService],
 })
-export class AppModule {}
+export class AppModule implements OnModuleInit {
+  constructor(
+    private readonly seedingService: SeedingService,
+  ) {}
+  async onModuleInit() {
+    await this.seedingService.Initialize()
+  }
+}
