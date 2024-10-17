@@ -48,6 +48,6 @@ export class AppModule implements OnModuleInit {
     private readonly seedingService: SeedingService,
   ) {}
   async onModuleInit() {
-    await this.seedingService.Initialize()
+    // await this.seedingService.Initialize();
   }
 }

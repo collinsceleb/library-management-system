@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { HelperModule } from '../../common/utils/helper/helper.module';
 import { DevicesModule } from '../devices/devices.module';
 import { RefreshTokensModule } from '../refresh-tokens/refresh-tokens.module';
+import { JwtStrategy } from '../../common/strategies/jwt.strategy';
 
 @Module({
   imports: [
@@ -27,6 +28,6 @@ import { RefreshTokensModule } from '../refresh-tokens/refresh-tokens.module';
     RefreshTokensModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy],
 })
 export class AuthModule {}
