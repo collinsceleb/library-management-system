@@ -1,16 +1,28 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { User } from "../../users/entities/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { ApiProperty } from '@nestjs/swagger';
+import { User } from '../../users/entities/user.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('device')
 export class Device {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid', {
+    name: 'id',
+    primaryKeyConstraintName: 'PK_device_id',
+  })
   id: string;
 
   @ApiProperty()
   @ManyToOne(() => User, (user) => user.devices)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({
+    name: 'user_id',
+    foreignKeyConstraintName: 'FK_device_user_id',
+  })
   user: User;
 
   @ApiProperty()
@@ -67,7 +79,7 @@ export class Device {
     description: 'The city where the device is located.',
     type: String,
   })
-  @Column({nullable: true})
+  @Column({ nullable: true })
   city: string;
 
   @ApiProperty({
@@ -75,7 +87,7 @@ export class Device {
     description: 'The region where the device is located.',
     type: String,
   })
-  @Column({nullable: true})
+  @Column({ nullable: true })
   region: string;
 
   @ApiProperty({
@@ -83,7 +95,7 @@ export class Device {
     description: 'The country where the device is located.',
     type: String,
   })
-  @Column({nullable: true})
+  @Column({ nullable: true })
   country: string;
 
   @ApiProperty({
@@ -91,7 +103,7 @@ export class Device {
     description: 'The latitude of the device location.',
     type: Number,
   })
-  @Column({nullable: true})
+  @Column({ nullable: true })
   latitude: number;
 
   @ApiProperty({
@@ -99,6 +111,6 @@ export class Device {
     description: 'The longitude of the device location.',
     type: Number,
   })
-  @Column({nullable: true})
+  @Column({ nullable: true })
   longitude: number;
 }

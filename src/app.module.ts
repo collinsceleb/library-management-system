@@ -6,6 +6,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { DevicesModule } from './modules/devices/devices.module';
 import { RefreshTokensModule } from './modules/refresh-tokens/refresh-tokens.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { RolesModule } from './modules/roles/roles.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     AuthModule,
     DevicesModule,
     RefreshTokensModule,
+    RolesModule,
+    PermissionsModule,
   ],
   controllers: [],
   providers: [],

@@ -13,7 +13,7 @@ import {
 @Entity('refresh_token')
 export class RefreshToken {
   @ApiProperty()
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn('uuid', { name: 'id', primaryKeyConstraintName: 'PK_refresh_token_id' })
   id: string;
 
   @ApiProperty()
@@ -22,13 +22,13 @@ export class RefreshToken {
 
   @ApiProperty()
   @ManyToOne(() => User, (user) => user.refreshTokens)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'user_id', foreignKeyConstraintName: 'FK_refresh_token_user_id' })
   @Index('user_id_idx')
   user: User;
 
   @ApiProperty()
   @ManyToOne(() => Device, (device) => device.id)
-  @JoinColumn({ name: 'device_id' })
+  @JoinColumn({ name: 'device_id', foreignKeyConstraintName: 'FK_refresh_token_device_id' })
   device: Device;
 
   @ApiProperty()

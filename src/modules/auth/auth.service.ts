@@ -88,7 +88,26 @@ export class AuthService {
       throw new InternalServerErrorException(error.message);
     }
   }
-
+  async validateUser(loginDataDto: LoginDataDto): Promise<User | null> {
+    try {
+      const { email, password } = loginDataDto;
+      const user = await this.authRepository.findOne({ where: { email } });
+      const isPasswordValid = await user.comparePassword(password);
+      if (!isPasswordValid) {
+        throw new BadRequestException('Incorrect password');
+      }
+      if (user && isPasswordValid) {
+        return user;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error validating user:', error.message);
+      throw new InternalServerErrorException(
+        'An error occurred while validating user. Please check server logs for details.',
+        error.message,
+      );
+    }
+  }
   async login(
     loginDataDto: LoginDataDto,
     request: Request,
