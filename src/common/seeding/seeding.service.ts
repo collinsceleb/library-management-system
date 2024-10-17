@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Permission } from '../../modules/permissions/entities/permission.entity';
@@ -21,9 +21,6 @@ export class SeedingService {
   private readonly SUPER_ADMIN_LAST_NAME = this.configService.get<string>(
     'SUPER_ADMIN_LAST_NAME',
   );
-  private readonly SUPER_ADMIN_IS_VERIFIED = this.configService.get<boolean>(
-    'SUPER_ADMIN_IS_VERIFIED',
-  );
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Role) private readonly roleRepository: Repository<Role>,
@@ -36,7 +33,6 @@ export class SeedingService {
     await this.createSuperAdminUser();
     await this.createDefaultPermissions();
     await this.assignDefaultPermissionsToSuperAdmin();
-    await this.assignSuperAdminToAllPermissions();
   }
   private async createSuperAdminRole(): Promise<Role> {
     try {
@@ -74,7 +70,7 @@ export class SeedingService {
             username: this.SUPER_ADMIN_USERNAME,
             firstName: this.SUPER_ADMIN_FIRST_NAME,
             lastName: this.SUPER_ADMIN_LAST_NAME,
-            isEmailVerified: this.SUPER_ADMIN_IS_VERIFIED,
+            isEmailVerified: true,
             role: superAdminRole.id as unknown as Role,
           });
           await newSuperAdmin.hashPassword();
@@ -142,27 +138,5 @@ export class SeedingService {
         }),
       );
     }
-  }
-  private async assignSuperAdminToAllPermissions(): Promise<void> {
-    const superAdminRole = await this.roleRepository.findOne({
-      where: {
-        name: 'Super Admin',
-      },
-    });
-    if (!superAdminRole) {
-      throw new Error('SuperAdmin role not found');
-    }
-    // Fetch all permissions
-    const permissions = await this.permissionRepository.find();
-
-    await Promise.all(
-      permissions.map(async (permission) => {
-        await this.permissionRepository
-          .createQueryBuilder()
-          .relation(Permission, 'roles')
-          .of(permission.id)
-          .add(superAdminRole.id);
-      }),
-    );
   }
 }

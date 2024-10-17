@@ -235,10 +235,12 @@ export class AuthService {
         throw new BadRequestException('Invalid refresh token format');
       }
       const payload: JwtPayload = this.jwtService.verify(refreshToken);
+      console.log('payload', payload);
+      
       if (!payload) {
         throw new BadRequestException('Invalid refresh token');
       }
-      if (typeof payload.sub.id !== 'string') {
+      if (typeof (payload.sub as unknown as User) !== 'string') {
         throw new BadRequestException(
           'Invalid user ID format. User ID should be a string',
         );

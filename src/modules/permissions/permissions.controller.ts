@@ -1,15 +1,25 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
+import { Permission } from './entities/permission.entity';
+import { ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles/roles.guard';
+import { Permissions } from '../../common/decorators/permissions/permissions.decorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
+@ApiTags('Permissions')
 @Controller('permissions')
 export class PermissionsController {
   constructor(private readonly permissionsService: PermissionsService) {}
 
-  @Post()
-  create(@Body() createPermissionDto: CreatePermissionDto) {
-    return this.permissionsService.create(createPermissionDto);
+  @Post('create-permission')
+  @Permissions('create_permission')
+  async createPermission(
+    @Body() createPermissionDto: CreatePermissionDto,
+  ): Promise<Permission> {
+    return await this.permissionsService.createPermission(createPermissionDto);
   }
 
   @Get()
@@ -23,7 +33,10 @@ export class PermissionsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePermissionDto: UpdatePermissionDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updatePermissionDto: UpdatePermissionDto,
+  ) {
     return this.permissionsService.update(+id, updatePermissionDto);
   }
 

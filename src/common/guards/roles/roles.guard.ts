@@ -26,15 +26,18 @@ export class RolesGuard implements CanActivate {
     }
     const request: Request = context.switchToHttp().getRequest();
     const user = request.user as User;
+    console.log('user', user);
 
     if (!user) {
       return false;
     }
     const userWithRoles = await this.userRepository.findOne({
       where: { id: user.id },
-      relations: ['role', 'role.permissions', 'permission'],
+      relations: ['role', 'role.permissions', 'permissions'],
     });
-    if (!userWithRoles || !userWithRoles.role) {
+    console.log('userWithRoles', userWithRoles);
+
+    if (!userWithRoles?.role) {
       return false;
     }
 
@@ -46,6 +49,11 @@ export class RolesGuard implements CanActivate {
       where: { id: userWithRoles.role.id },
       relations: ['permissions'],
     });
+    console.log(
+      'roleWithPermissions.permissions',
+      roleWithPermissions.permissions,
+    );
+    console.log('roleWithPermissions', roleWithPermissions);
     roleWithPermissions.permissions.forEach((permission) =>
       userPermissions.add(permission.name),
     );
@@ -55,8 +63,9 @@ export class RolesGuard implements CanActivate {
       userPermissions.add(permission.name),
     );
 
+    console.log('userPermissions', userPermissions);
     // Remove denied permissions from the final set
-    userWithRoles.deniedPermissions.forEach((permission) =>
+    userWithRoles.deniedPermissions?.forEach((permission) =>
       userPermissions.delete(permission.name),
     );
     return requiredPermissions.every((permission) =>

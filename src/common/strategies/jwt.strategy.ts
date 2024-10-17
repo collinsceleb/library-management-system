@@ -26,6 +26,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       where: { id: payload.sub } as unknown as JwtPayload,
       relations: ['role', 'role.permissions'],
     });
+    console.log('users', user);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
