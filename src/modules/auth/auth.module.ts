@@ -9,6 +9,7 @@ import { HelperModule } from '../../common/utils/helper/helper.module';
 import { DevicesModule } from '../devices/devices.module';
 import { RefreshTokensModule } from '../refresh-tokens/refresh-tokens.module';
 import { JwtStrategy } from '../../common/strategies/jwt.strategy';
+import { RolesModule } from '../roles/roles.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { JwtStrategy } from '../../common/strategies/jwt.strategy';
     HelperModule,
     DevicesModule,
     RefreshTokensModule,
+    RolesModule
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

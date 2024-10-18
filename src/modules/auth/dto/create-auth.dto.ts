@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Matches, MinLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Matches,
+  MinLength,
+} from 'class-validator';
 
 export class CreateAuthDto {
   @IsNotEmpty({ message: 'Email is required' })
@@ -41,4 +47,11 @@ export class CreateAuthDto {
   @Matches(/^[a-zA-Z]+$/, { message: 'Last name must contain only letters' })
   @Matches(/^\S*$/, { message: 'Last name must not contain spaces' })
   lastName: string;
+
+  @ApiProperty()
+  @IsOptional({ message: 'Role is optional' })
+  @IsString({ message: 'Role must be a string' })
+  @Matches(/^[a-zA-Z]+$/, { message: 'Role must contain only letters' })
+  @Matches(/^\S*$/, { message: 'Role must not contain spaces' })
+  role?: string;
 }
