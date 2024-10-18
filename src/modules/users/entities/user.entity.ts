@@ -56,6 +56,14 @@ export class User {
   isBlocked: boolean;
 
   @ApiProperty({ example: false })
+  @Column({ name: 'is_admins_creation', default: false })
+  isAdminsCreation: boolean;
+
+  @ApiProperty({ example: false })
+  @Column({ name: 'is_password_changed', default: false })
+  isPasswordChanged: boolean;
+
+  @ApiProperty({ example: false })
   @Column({ name: 'is_email_verified', default: false })
   isEmailVerified: boolean;
 
