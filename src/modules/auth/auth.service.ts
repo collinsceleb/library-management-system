@@ -69,7 +69,9 @@ export class AuthService {
           where: { name: userRoleName },
         });
         if (!assignedRole) {
-          throw new NotFoundException(`Role with name ${userRoleName} not found`);
+          throw new NotFoundException(
+            `Role with name ${userRoleName} not found`,
+          );
         }
       } else {
         assignedRole = await this.roleRepository.findOne({
@@ -146,6 +148,15 @@ export class AuthService {
     }
     if (!isEmail(email)) {
       throw new BadRequestException('Invalid email address');
+    }
+    const existingUser = await this.authRepository.findOne({
+      where: { email: email },
+    });
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
+    if (!existingUser.isPasswordChanged && existingUser.isAdminsCreation) {
+      throw new BadRequestException('Please change your password before login');
     }
     const user = await this.authRepository.findOne({ where: { email: email } });
     if (!user) {
