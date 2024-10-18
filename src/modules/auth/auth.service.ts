@@ -22,8 +22,9 @@ import { RefreshToken } from '../refresh-tokens/entities/refresh-token.entity';
 import { LoginDataDto } from './dto/login-data.dto';
 import { JwtPayload } from '../../common/interface/jwt-payload/jwt-payload.interface';
 import { CreateRefreshTokenDataDto } from './dto/create-refresh-token-data.dto';
-import { TokenResponse } from 'src/common/interface/token-response/token-response.interface';
+import { TokenResponse } from '../../common/interface/token-response/token-response.interface';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { Role } from '../roles/entities/role.entity';
 
 @Injectable()
 export class AuthService {
@@ -35,6 +36,8 @@ export class AuthService {
     private readonly deviceRepository: Repository<Device>,
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepository: Repository<RefreshToken>,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     private readonly helperService: HelperService,
@@ -47,27 +50,52 @@ export class AuthService {
    */
   async register(createAuthDto: CreateAuthDto): Promise<User> {
     try {
-      if (typeof createAuthDto.email !== 'string') {
+      const { username, password, email, lastName, firstName, role } =
+        createAuthDto;
+      if (typeof email !== 'string') {
         throw new BadRequestException('Email should be string');
       }
-      if (!isEmail(createAuthDto.email)) {
+      if (!isEmail(email)) {
         throw new BadRequestException('invalid email format');
       }
       await this.checkUserExists({
-        email: createAuthDto.email,
-        username: createAuthDto.username,
+        email: email,
+        username: username,
       });
+      let assignedRole: Role;
+      const userRoleName = role;
+      if (userRoleName) {
+        assignedRole = await this.roleRepository.findOne({
+          where: { name: userRoleName },
+        });
+        if (!assignedRole) {
+          throw new NotFoundException(`Role with name ${userRoleName} not found`);
+        }
+      } else {
+        assignedRole = await this.roleRepository.findOne({
+          where: { name: 'User' },
+        });
+        console.log('assignedRole', assignedRole);
+        if (!assignedRole) {
+          throw new NotFoundException('Default role not found');
+        }
+      }
       const user = this.authRepository.create({
-        lastName: createAuthDto.lastName,
-        firstName: createAuthDto.firstName,
-        username: createAuthDto.username,
-        email: createAuthDto.email,
-        password: createAuthDto.password,
+        lastName: lastName,
+        firstName: firstName,
+        username: username,
+        email: email,
+        password: password,
+        role: assignedRole.id as unknown as Role,
       });
       await user.hashPassword();
       return await this.authRepository.save(user);
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      console.error('Error registering the user:', error.message);
+      throw new InternalServerErrorException(
+        'An error occurred while registering the user. Please check server logs for details.',
+        error.message,
+      );
     }
   }
   async checkUserExists(checkUserDataDto: CheckUserDataDto): Promise<boolean> {
@@ -236,7 +264,7 @@ export class AuthService {
       }
       const payload: JwtPayload = this.jwtService.verify(refreshToken);
       console.log('payload', payload);
-      
+
       if (!payload) {
         throw new BadRequestException('Invalid refresh token');
       }
@@ -252,9 +280,11 @@ export class AuthService {
       }
       const isRevoked = await this.checkTokenRevocation(refreshToken);
       if (isRevoked) {
-        throw new BadRequestException('Refresh token has been revoked. Please login again.');
+        throw new BadRequestException(
+          'Refresh token has been revoked. Please login again.',
+        );
       }
-      const tokenDocument = await this.findToken(refreshToken)
+      const tokenDocument = await this.findToken(refreshToken);
       const device = await this.deviceRepository.findOne({
         where: {
           uniqueDeviceId: uniqueDeviceId,
@@ -288,7 +318,7 @@ export class AuthService {
           longitude: location.longitude,
         },
       );
-      await this.revokeToken(tokenDocument.token)
+      await this.revokeToken(tokenDocument.token);
       const newJwtId = crypto.randomUUID();
       const newPayload: JwtPayload = {
         sub: payload.sub,
