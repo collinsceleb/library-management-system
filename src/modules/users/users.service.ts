@@ -12,13 +12,12 @@ import { User } from './entities/user.entity';
 import { AuthService } from '../auth/auth.service';
 import { Role } from '../roles/entities/role.entity';
 import { UpdatePasswordDto } from './dto/update-password.dto';
-import { use } from 'passport';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    // private readonly authService: AuthService,
+    private readonly authService: AuthService,
   ) {}
   async createUser(
     createUserDto: CreateUserDto,
@@ -26,7 +25,7 @@ export class UsersService {
     try {
       const { username, password, email, lastName, firstName, role } =
         createUserDto;
-      // await this.authService.checkUserExists({ email: email, username: username });
+      await this.authService.checkUserExists({ email: email, username: username });
       const tempPassword = generatePassword.generate({
         length: 12,
         numbers: true,
