@@ -3,7 +3,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { User } from '../users/entities/user.entity';
-import { TokenResponse } from 'src/common/interface/token-response/token-response.interface';
+import { TokenResponse } from '../../common/interface/token-response/token-response.interface';
 import { LoginDataDto } from './dto/login-data.dto';
 
 describe('AuthController', () => {
