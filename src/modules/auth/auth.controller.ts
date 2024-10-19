@@ -7,18 +7,15 @@ import {
   Param,
   Delete,
   Req,
-  HttpCode,
-  HttpStatus,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-import { ApiBearerAuth, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { User } from '../users/entities/user.entity';
 import { LoginDataDto } from './dto/login-data.dto';
 import { Request } from 'express';
-import { CreateRefreshTokenDataDto } from './dto/create-refresh-token-data.dto';
-import { TokenResponse } from 'src/common/interface/token-response/token-response.interface';
+import { TokenResponse } from '../../common/interface/token-response/token-response.interface';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -47,31 +44,6 @@ export class AuthController {
     @Req() request: Request,
   ): Promise<TokenResponse> {
     return await this.authService.login(loginDataDto, request);
-  }
-
-  @Post('refresh/:uniqueDeviceId')
-  async refreshToken(
-    @Body() createRefreshTokenDataDto: CreateRefreshTokenDataDto,
-    @Param('uniqueDeviceId') uniqueDeviceId: string,
-    @Req() request: Request,
-  ): Promise<TokenResponse> {
-    return await this.authService.refreshToken(
-      createRefreshTokenDataDto,
-      uniqueDeviceId,
-      request,
-    );
-  }
-  @ApiBearerAuth()
-  @Post('revoke')
-  async revokeToken(@Body('refreshToken') refreshToken: string) {
-    return await this.authService.revokeToken(refreshToken);
-  }
-
-  @ApiBearerAuth()
-  @Delete('tokens/cleanup')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async cleanupTokens(): Promise<number> {
-    return await this.authService.handleCron();
   }
 
   @Get()

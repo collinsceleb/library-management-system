@@ -8,7 +8,8 @@ import { RefreshTokensModule } from './modules/refresh-tokens/refresh-tokens.mod
 import { ScheduleModule } from '@nestjs/schedule';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
-import { SeedingService } from './common/seeding/seeding.service';
+import { SeedingService } from './common/seeding/seeding.service';;
+import { SharedModule } from './common/shared/shared.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { SeedingService } from './common/seeding/seeding.service';
     RefreshTokensModule,
     RolesModule,
     PermissionsModule,
+    SharedModule,
   ],
   controllers: [],
   providers: [SeedingService],

@@ -3,6 +3,9 @@ import { RefreshTokensController } from './refresh-tokens.controller';
 import { RefreshTokensService } from './refresh-tokens.service';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { User } from '../users/entities/user.entity';
+import { TokenResponse } from 'src/common/interface/token-response/token-response.interface';
+import { CreateRefreshTokenDto } from './dto/create-refresh-token.dto';
+import { Device } from '../devices/entities/device.entity';
 
 describe('RefreshTokensController', () => {
   let refreshTokenController: RefreshTokensController;
@@ -17,6 +20,9 @@ describe('RefreshTokensController', () => {
           useValue: {
             revokeAllTokensForUser: jest.fn(),
             revokeAllTokens: jest.fn(),
+            refreshToken: jest.fn(),
+            revokeToken: jest.fn(),
+            handleCron: jest.fn(),
           },
         },
       ],
@@ -84,6 +90,66 @@ describe('RefreshTokensController', () => {
 
       expect(refreshTokenService.revokeAllTokens).toHaveBeenCalled();
       expect(result).toEqual(mockTokens);
+    });
+  });
+  describe('refreshToken', () => {
+    it('should call refreshToken and return a token response', async () => {
+      const result: TokenResponse = {
+        accessToken: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+        refreshToken: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+        uniqueDeviceId: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+      };
+
+      const createRefreshTokenDto: CreateRefreshTokenDto = {
+        refreshToken: '123e4567-e89b-12d3-a456-426614174001',
+      };
+      const request = {
+        user: {
+          id: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+          firstName: 'Test Category',
+          email: 'abc@example.com',
+          username: '',
+          password: 'Passowrd1234&',
+          lastName: '',
+        },
+      };
+
+      const uniqueDeviceId = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+      jest.spyOn(refreshTokenService, 'refreshToken').mockResolvedValue(result);
+
+      expect(
+        await refreshTokenController.refreshToken(
+          createRefreshTokenDto,
+          uniqueDeviceId,
+          request as any,
+        ),
+      ).toBe(result);
+    });
+  });
+  describe('revokeToken', () => {
+    it('should call revokeToken and return a refresh token object', async () => {
+      const result: RefreshToken = {
+        id: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+        token: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+        user: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' as unknown as User,
+        device: new Device(),
+        isActive: false,
+        isRevoked: false,
+        expiresAt: undefined,
+      };
+
+      const refreshToken = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+      jest.spyOn(refreshTokenService, 'revokeToken').mockResolvedValue(result);
+
+      expect(await refreshTokenController.revokeToken(refreshToken)).toBe(result);
+    });
+  });
+  describe('cleanupTokens', () => {
+    it('should call cleanupTokens and return a number of affected rows', async () => {
+      const result = 1;
+      jest.spyOn(refreshTokenService, 'handleCron').mockResolvedValue(result);
+
+      expect(await refreshTokenController.cleanupTokens()).toBe(result);
     });
   });
 });
