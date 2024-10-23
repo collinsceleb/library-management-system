@@ -94,14 +94,9 @@ export class SeedingService {
         description: 'Permission to create roles',
       },
       {
-        name: 'assign_role_to_permission',
-        description: 'Permission to assign role to permission',
-      },
-      {
         name: 'assign_permission_to_role',
         description: 'Permission to assign permission to role',
       },
-      // ... other default permissions
     ];
 
     for (const permissionData of defaultPermissions) {
@@ -123,13 +118,9 @@ export class SeedingService {
       },
     });
     if (superAdminRole) {
-      // Fetch all default permissions
       const defaultPermissions = await this.permissionRepository.find();
-
-      // Assign all permissions to SuperAdmin role
       await Promise.all(
         defaultPermissions.map(async (permission) => {
-          // Use QueryBuilder to update the role's permissions
           await this.roleRepository
             .createQueryBuilder()
             .relation(Role, 'permissions')
