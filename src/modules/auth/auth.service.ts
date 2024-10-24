@@ -156,6 +156,7 @@ export class AuthService {
       accessToken: tokenDetails.accessToken,
       refreshToken: tokenDetails.refreshToken,
       uniqueDeviceId: tokenDetails.uniqueDeviceId,
+      session: request.session
     };
   }
   findAll() {
