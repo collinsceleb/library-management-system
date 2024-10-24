@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -19,16 +20,20 @@ import { HelperService } from '../../common/utils/helper/helper.service';
 import { Device } from '../devices/entities/device.entity';
 import { User } from '../users/entities/user.entity';
 import { Request } from 'express';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class RefreshTokensService {
   private readonly JWT_EXPIRATION_TIME =
     this.configService.get<number>('JWT_EXPIRATION_TIME') * 1000;
+  private readonly REDIS_TTL_IN_MILLISECONDS =
+    this.configService.get<number>('REDIS_TTL') * 1000;
   constructor(
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepository: Repository<RefreshToken>,
     @InjectRepository(Device)
     private readonly deviceRepository: Repository<Device>,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     private readonly helperService: HelperService,
@@ -112,7 +117,17 @@ export class RefreshTokensService {
         expiresAt: new Date(Date.now() + this.JWT_EXPIRATION_TIME),
       });
       await this.refreshTokenRepository.save(refreshToken);
-      return { accessToken, refreshToken: refreshToken.token, uniqueDeviceId };
+      await this.cacheManager.set(
+        `refreshToken-${token}`,
+        refreshToken,
+        this.REDIS_TTL_IN_MILLISECONDS,
+      );
+      return {
+        accessToken,
+        refreshToken: refreshToken.token,
+        uniqueDeviceId,
+        session: request.session,
+      };
     } catch (error) {
       console.error('Error generating tokens', error.message);
       throw new InternalServerErrorException(
@@ -133,7 +148,6 @@ export class RefreshTokensService {
         throw new BadRequestException('Invalid refresh token format');
       }
       const payload: JwtPayload = this.jwtService.verify(refreshToken);
-      console.log('payload', payload);
 
       if (!payload) {
         throw new BadRequestException('Invalid refresh token');
@@ -154,7 +168,17 @@ export class RefreshTokensService {
           'Refresh token has been revoked. Please login again.',
         );
       }
-      const tokenDocument = await this.findToken(refreshToken);
+      const cachedToken: RefreshToken = await this.cacheManager.get(
+        `refreshToken-${refreshToken}`,
+      );
+      let tokenDocument: RefreshToken;
+      if (cachedToken) {
+        tokenDocument = cachedToken;
+      } else {
+        tokenDocument = await this.findToken(refreshToken);
+        if (!tokenDocument.token)
+          throw new NotFoundException('Token not found');
+      }
       const device = await this.deviceRepository.findOne({
         where: {
           uniqueDeviceId: uniqueDeviceId,
@@ -213,13 +237,20 @@ export class RefreshTokensService {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
         uniqueDeviceId,
+        session: request.session,
       };
     } catch (error) {
-      console.error('Error refreshing tokens:', error);
-      throw new InternalServerErrorException(
-        'An error occurred while refreshing tokens. Please check server logs for details.',
-        error,
-      );
+      if (error.name === 'TokenExpiredError') {
+        throw new BadRequestException('Refresh token has expired', error);
+      } else if (error.name === 'JsonWebTokenError') {
+        throw new BadRequestException('Invalid refresh token', error);
+      } else {
+        console.error('Error refreshing tokens:', error);
+        throw new InternalServerErrorException(
+          'An error occurred while refreshing tokens. Please check server logs for details.',
+          error,
+        );
+      }
     }
   }
 
@@ -261,6 +292,11 @@ export class RefreshTokensService {
       if (!payload) {
         throw new BadRequestException('Invalid token');
       }
+      await this.cacheManager.set(
+        `refreshToken-${refreshToken}`,
+        true,
+        this.REDIS_TTL_IN_MILLISECONDS,
+      );
       const tokenDocument = await this.findToken(refreshToken);
       if (!tokenDocument) {
         throw new NotFoundException('Token not found');
