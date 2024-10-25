@@ -3,4 +3,5 @@ export interface TokenResponse {
     refreshToken: string;
     uniqueDeviceId: string;
     session: {};
+    sessionId: string
 }

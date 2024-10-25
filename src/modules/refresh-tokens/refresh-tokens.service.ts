@@ -6,7 +6,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateRefreshTokenDto } from './dto/create-refresh-token.dto';
-import { UpdateRefreshTokenDto } from './dto/update-refresh-token.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RefreshToken } from './entities/refresh-token.entity';
@@ -127,6 +126,7 @@ export class RefreshTokensService {
         refreshToken: refreshToken.token,
         uniqueDeviceId,
         session: request.session,
+        sessionId: request.session.id,
       };
     } catch (error) {
       console.error('Error generating tokens', error.message);
@@ -147,7 +147,7 @@ export class RefreshTokensService {
       if (typeof refreshToken !== 'string') {
         throw new BadRequestException('Invalid refresh token format');
       }
-      const payload: JwtPayload = this.jwtService.verify(refreshToken);
+      const { payload, storedToken } = await this.findToken(refreshToken);
 
       if (!payload) {
         throw new BadRequestException('Invalid refresh token');
@@ -167,17 +167,6 @@ export class RefreshTokensService {
         throw new BadRequestException(
           'Refresh token has been revoked. Please login again.',
         );
-      }
-      const cachedToken: RefreshToken = await this.cacheManager.get(
-        `refreshToken-${refreshToken}`,
-      );
-      let tokenDocument: RefreshToken;
-      if (cachedToken) {
-        tokenDocument = cachedToken;
-      } else {
-        tokenDocument = await this.findToken(refreshToken);
-        if (!tokenDocument.token)
-          throw new NotFoundException('Token not found');
       }
       const device = await this.deviceRepository.findOne({
         where: {
@@ -212,7 +201,7 @@ export class RefreshTokensService {
           longitude: location.longitude,
         },
       );
-      await this.revokeToken(tokenDocument.token);
+      await this.revokeToken(storedToken.token);
       const newJwtId = crypto.randomUUID();
       const newPayload: JwtPayload = {
         sub: payload.sub,
@@ -238,6 +227,7 @@ export class RefreshTokensService {
         refreshToken: newRefreshToken,
         uniqueDeviceId,
         session: request.session,
+        sessionId: request.session.id,
       };
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
@@ -254,22 +244,41 @@ export class RefreshTokensService {
     }
   }
 
-  async findToken(refreshToken: string): Promise<RefreshToken> {
+  async findToken(
+    refreshToken: string,
+  ): Promise<{ payload: JwtPayload; storedToken: RefreshToken }> {
     try {
       if (typeof refreshToken !== 'string') {
         throw new BadRequestException(
           'Invalid token format. Token should be a string',
         );
       }
-      const payload: JwtPayload = this.jwtService.decode(refreshToken);
+      const payload: JwtPayload = this.jwtService.verify(refreshToken);
       if (!payload) {
         throw new BadRequestException('Invalid token');
       }
-      const findToken = await this.refreshTokenRepository.findOne({
-        where: { token: refreshToken },
-        // relations: ['device', 'user'],
-      });
-      return findToken;
+      const cachedToken: RefreshToken = await this.cacheManager.get(
+        `refreshToken-${refreshToken}`,
+      );
+      let storedToken: RefreshToken;
+      if (cachedToken) {
+        storedToken = cachedToken;
+      } else {
+        storedToken = await this.refreshTokenRepository.findOne({
+          where: { token: refreshToken },
+        });
+        if (storedToken) {
+          await this.cacheManager.set(
+            `refreshToken-${refreshToken}`,
+            storedToken,
+            this.REDIS_TTL_IN_MILLISECONDS,
+          );
+        }
+        if (!storedToken) {
+          throw new NotFoundException('Token not found');
+        }
+      }
+      return { payload, storedToken };
     } catch (error) {
       console.error('Error finding token:', error);
       throw new InternalServerErrorException('Failed to find token', error);
@@ -288,26 +297,25 @@ export class RefreshTokensService {
           'Invalid token format. Token should be a string',
         );
       }
-      const payload: JwtPayload = this.jwtService.decode(refreshToken);
+      const { payload, storedToken } = await this.findToken(refreshToken);
       if (!payload) {
         throw new BadRequestException('Invalid token');
       }
+      if (!storedToken) {
+        throw new NotFoundException('Token not found');
+      }
+      if (storedToken.isRevoked) {
+        throw new BadRequestException('Token is already revoked');
+      }
+      storedToken.isRevoked = true;
+      storedToken.isActive = false;
       await this.cacheManager.set(
         `refreshToken-${refreshToken}`,
         true,
         this.REDIS_TTL_IN_MILLISECONDS,
       );
-      const tokenDocument = await this.findToken(refreshToken);
-      if (!tokenDocument) {
-        throw new NotFoundException('Token not found');
-      }
-      if (tokenDocument.isRevoked) {
-        throw new BadRequestException('Token is already revoked');
-      }
-      tokenDocument.isRevoked = true;
-      tokenDocument.isActive = false;
-      await this.refreshTokenRepository.save(tokenDocument);
-      return tokenDocument;
+      const savedToken = await this.refreshTokenRepository.save(storedToken);
+      return savedToken;
     } catch (error) {
       console.error('Error revoking token:', error);
       throw new InternalServerErrorException(
@@ -338,15 +346,14 @@ export class RefreshTokensService {
           'Invalid token format. Token should be a string',
         );
       }
-      const payload: JwtPayload = this.jwtService.decode(refreshToken);
+      const { payload, storedToken } = await this.findToken(refreshToken);
       if (!payload) {
         throw new BadRequestException('Invalid token');
       }
-      const tokenDocument = await this.findToken(refreshToken);
-      if (!tokenDocument) {
+      if (!storedToken) {
         throw new NotFoundException('Token not found');
       }
-      if (tokenDocument.isRevoked) {
+      if (storedToken.isRevoked) {
         throw new BadRequestException('Token is already revoked');
       }
       return false;
@@ -449,24 +456,5 @@ export class RefreshTokensService {
         error.message,
       );
     }
-  }
-  create(createRefreshTokenDto: CreateRefreshTokenDto) {
-    return 'This action adds a new refreshToken';
-  }
-
-  findAll() {
-    return `This action returns all refreshTokens`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} refreshToken`;
-  }
-
-  update(id: number, updateRefreshTokenDto: UpdateRefreshTokenDto) {
-    return `This action updates a #${id} refreshToken`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} refreshToken`;
   }
 }
