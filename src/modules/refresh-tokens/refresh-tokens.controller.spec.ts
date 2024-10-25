@@ -98,7 +98,8 @@ describe('RefreshTokensController', () => {
         accessToken: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
         refreshToken: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
         uniqueDeviceId: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-        session: {}
+        session: {},
+        sessionId: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
       };
 
       const createRefreshTokenDto: CreateRefreshTokenDto = {
