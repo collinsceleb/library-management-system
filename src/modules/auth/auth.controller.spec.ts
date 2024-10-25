@@ -57,7 +57,8 @@ describe('AuthController', () => {
          accessToken: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
          refreshToken: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
          uniqueDeviceId: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-         session: {}
+         session: {},
+         sessionId: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
        };
 
        const loginDataDto: LoginDataDto = {

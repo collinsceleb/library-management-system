@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -16,14 +17,20 @@ import { LoginDataDto } from './dto/login-data.dto';
 import { TokenResponse } from '../../common/interface/token-response/token-response.interface';
 import { Role } from '../roles/entities/role.entity';
 import { RefreshTokensService } from '../refresh-tokens/refresh-tokens.service';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
+  private readonly REDIS_TTL_IN_MILLISECONDS =
+    this.configService.get<number>('REDIS_TTL') * 1000;
   constructor(
     @InjectRepository(User) private readonly authRepository: Repository<User>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly refreshTokensService: RefreshTokensService,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -74,7 +81,13 @@ export class AuthService {
         role: assignedRole.id as unknown as Role,
       });
       await user.hashPassword();
-      return await this.authRepository.save(user);
+      const savedUser = await this.authRepository.save(user);
+      await this.cacheManager.set(
+        `user_${savedUser.id}`,
+        savedUser,
+        this.REDIS_TTL_IN_MILLISECONDS,
+      );
+      return savedUser;
     } catch (error) {
       console.error('Error registering the user:', error.message);
       throw new InternalServerErrorException(
@@ -83,6 +96,11 @@ export class AuthService {
       );
     }
   }
+  /**
+   * Check if user exists
+   * @param checkUserDataDto
+   * @returns boolean
+   */
   async checkUserExists(checkUserDataDto: CheckUserDataDto): Promise<boolean> {
     try {
       const { email, username } = checkUserDataDto;
@@ -101,6 +119,11 @@ export class AuthService {
       throw new InternalServerErrorException(error.message);
     }
   }
+  /**
+   * Self-made validation
+   * @param loginDataDto
+   * @returns User
+   */
   async validateUser(loginDataDto: LoginDataDto): Promise<User | null> {
     try {
       const { email, password } = loginDataDto;
@@ -121,43 +144,57 @@ export class AuthService {
       );
     }
   }
+  /**
+   * Self-made login
+   * @param loginDataDto
+   * @param request
+   * @returns TokenResponse
+   */
   async login(
     loginDataDto: LoginDataDto,
     request: Request,
   ): Promise<TokenResponse> {
-    const { email, password } = loginDataDto;
-    if (typeof email !== 'string') {
-      throw new BadRequestException('Invalid email format');
+    try {
+      const { email, password } = loginDataDto;
+      if (typeof email !== 'string') {
+        throw new BadRequestException('Invalid email format');
+      }
+      if (!isEmail(email)) {
+        throw new BadRequestException('Invalid email address');
+      }
+      const existingUser = await this.authRepository.findOne({
+        where: { email: email },
+      });
+      if (!existingUser) {
+        throw new NotFoundException('User not found');
+      }
+      if (!existingUser.isPasswordChanged && existingUser.isAdminsCreation) {
+        throw new BadRequestException('Please change your password before login');
+      }
+      const isPasswordValid = await existingUser.comparePassword(password);
+      if (!isPasswordValid) {
+        throw new BadRequestException('Incorrect password');
+      }
+      existingUser.lastLogin = new Date();
+      await this.authRepository.save(existingUser);
+      const tokenDetails = await this.refreshTokensService.generateTokens(
+        existingUser,
+        request,
+      );
+      return {
+        accessToken: tokenDetails.accessToken,
+        refreshToken: tokenDetails.refreshToken,
+        uniqueDeviceId: tokenDetails.uniqueDeviceId,
+        session: request.session,
+        sessionId: request.session.id,
+      };
+    } catch (error) {
+      console.error('Error logging in:', error.message);
+      throw new InternalServerErrorException(
+        'An error occurred while logging in. Please check server logs for details.',
+        error.message,
+      );
     }
-    if (!isEmail(email)) {
-      throw new BadRequestException('Invalid email address');
-    }
-    const existingUser = await this.authRepository.findOne({
-      where: { email: email },
-    });
-    if (!existingUser) {
-      throw new NotFoundException('User not found');
-    }
-    if (!existingUser.isPasswordChanged && existingUser.isAdminsCreation) {
-      throw new BadRequestException('Please change your password before login');
-    }
-    const user = await this.authRepository.findOne({ where: { email: email } });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
-      throw new BadRequestException('Incorrect password');
-    }
-    user.lastLogin = new Date();
-    await this.authRepository.save(user);
-    const tokenDetails = await this.refreshTokensService.generateTokens(user, request);
-    return {
-      accessToken: tokenDetails.accessToken,
-      refreshToken: tokenDetails.refreshToken,
-      uniqueDeviceId: tokenDetails.uniqueDeviceId,
-      session: request.session
-    };
   }
   findAll() {
     return `This action returns all auth`;
