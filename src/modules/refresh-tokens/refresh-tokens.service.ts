@@ -13,8 +13,8 @@ import * as UAParser from 'ua-parser-js';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { JwtPayload } from '../../common/interface/jwt-payload/jwt-payload.interface';
-import { TokenResponse } from '../../common/interface/token-response/token-response.interface';
+import { JwtPayload } from '../../common/class/jwt-payload/jwt-payload';
+import { TokenResponse } from '../../common/class/token-response/token-response';
 import { HelperService } from '../../common/utils/helper/helper.service';
 import { Device } from '../devices/entities/device.entity';
 import { User } from '../users/entities/user.entity';
@@ -121,13 +121,14 @@ export class RefreshTokensService {
         refreshToken,
         this.REDIS_TTL_IN_MILLISECONDS,
       );
-      return {
+      const tokenResponse: TokenResponse = {
         accessToken,
         refreshToken: refreshToken.token,
         uniqueDeviceId,
         session: request.session,
         sessionId: request.session.id,
       };
+      return tokenResponse;
     } catch (error) {
       console.error('Error generating tokens', error.message);
       throw new InternalServerErrorException(
@@ -148,6 +149,7 @@ export class RefreshTokensService {
         throw new BadRequestException('Invalid refresh token format');
       }
       const { payload, storedToken } = await this.findToken(refreshToken);
+      console.log(payload);
 
       if (!payload) {
         throw new BadRequestException('Invalid refresh token');
@@ -222,13 +224,14 @@ export class RefreshTokensService {
         expiresAt: new Date(Date.now() + this.JWT_EXPIRATION_TIME),
       });
       await this.refreshTokenRepository.save(newRefreshTokenDocument);
-      return {
+      const tokenResponse: TokenResponse = {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
         uniqueDeviceId,
         session: request.session,
         sessionId: request.session.id,
       };
+      return tokenResponse;
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
         throw new BadRequestException('Refresh token has expired', error);

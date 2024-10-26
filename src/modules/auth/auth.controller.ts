@@ -11,11 +11,11 @@ import {
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import { ApiAcceptedResponse, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { User } from '../users/entities/user.entity';
 import { LoginDataDto } from './dto/login-data.dto';
 import { Request } from 'express';
-import { TokenResponse } from '../../common/interface/token-response/token-response.interface';
+import { TokenResponse } from '../../common/class/token-response/token-response';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -39,6 +39,12 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiOkResponse({
+    type: TokenResponse,
+    description: 'Login successful',
+    status: 200,
+    schema: { example: TokenResponse },
+  })
   async login(
     @Body() loginDataDto: LoginDataDto,
     @Req() request: Request,
