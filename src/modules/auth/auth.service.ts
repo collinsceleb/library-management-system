@@ -14,7 +14,7 @@ import { CheckUserDataDto } from './dto/check-user-data.dto';
 import { isEmail } from 'class-validator';
 import { Request } from 'express';
 import { LoginDataDto } from './dto/login-data.dto';
-import { TokenResponse } from '../../common/interface/token-response/token-response.interface';
+import { TokenResponse } from '../../common/class/token-response/token-response';
 import { Role } from '../roles/entities/role.entity';
 import { RefreshTokensService } from '../refresh-tokens/refresh-tokens.service';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -169,7 +169,9 @@ export class AuthService {
         throw new NotFoundException('User not found');
       }
       if (!existingUser.isPasswordChanged && existingUser.isAdminsCreation) {
-        throw new BadRequestException('Please change your password before login');
+        throw new BadRequestException(
+          'Please change your password before login',
+        );
       }
       const isPasswordValid = await existingUser.comparePassword(password);
       if (!isPasswordValid) {
@@ -181,13 +183,14 @@ export class AuthService {
         existingUser,
         request,
       );
-      return {
+      const tokenResponse: TokenResponse = {
         accessToken: tokenDetails.accessToken,
         refreshToken: tokenDetails.refreshToken,
         uniqueDeviceId: tokenDetails.uniqueDeviceId,
         session: request.session,
         sessionId: request.session.id,
       };
+      return tokenResponse;
     } catch (error) {
       console.error('Error logging in:', error.message);
       throw new InternalServerErrorException(

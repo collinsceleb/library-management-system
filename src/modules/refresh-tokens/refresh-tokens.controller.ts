@@ -12,23 +12,28 @@ import {
 import { RefreshTokensService } from './refresh-tokens.service';
 import { CreateRefreshTokenDto } from './dto/create-refresh-token.dto';
 import { Request } from 'express';
-import { ApiBearerAuth } from '@nestjs/swagger';
-import { TokenResponse } from '../../common/interface/token-response/token-response.interface';
+import { ApiAcceptedResponse, ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { TokenResponse } from '../../common/class/token-response/token-response';
 
+@ApiTags('Refresh Tokens')
 @Controller('refresh-tokens')
 export class RefreshTokensController {
   constructor(private readonly refreshTokensService: RefreshTokensService) {}
 
   @Patch('revoke-all-tokens-for-user/:userId')
+  @ApiBearerAuth()
   async revokeAllTokensForUser(@Param('userId') userId: string) {
     return await this.refreshTokensService.revokeAllTokensForUser(userId);
   }
 
   @Patch('revoke-all-tokens')
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
   async revokeAllTokens() {
     return await this.refreshTokensService.revokeAllTokens();
   }
   @Post('refresh/:uniqueDeviceId')
+  @ApiAcceptedResponse({ type: TokenResponse, description: 'Token refreshed successfully' })
   async refreshToken(
     @Body() createRefreshTokenDto: CreateRefreshTokenDto,
     @Param('uniqueDeviceId') uniqueDeviceId: string,
@@ -40,6 +45,7 @@ export class RefreshTokensController {
       request,
     );
   }
+
   @ApiBearerAuth()
   @Post('revoke')
   async revokeToken(@Body('refreshToken') refreshToken: string) {

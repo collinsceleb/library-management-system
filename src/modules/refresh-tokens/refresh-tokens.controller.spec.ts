@@ -3,7 +3,7 @@ import { RefreshTokensController } from './refresh-tokens.controller';
 import { RefreshTokensService } from './refresh-tokens.service';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { User } from '../users/entities/user.entity';
-import { TokenResponse } from '../../common/interface/token-response/token-response.interface';
+import { TokenResponse } from '../../common/class/token-response/token-response';
 import { CreateRefreshTokenDto } from './dto/create-refresh-token.dto';
 import { Device } from '../devices/entities/device.entity';
 
@@ -143,7 +143,9 @@ describe('RefreshTokensController', () => {
       const refreshToken = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
       jest.spyOn(refreshTokenService, 'revokeToken').mockResolvedValue(result);
 
-      expect(await refreshTokenController.revokeToken(refreshToken)).toBe(result);
+      expect(await refreshTokenController.revokeToken(refreshToken)).toBe(
+        result,
+      );
     });
   });
   describe('cleanupTokens', () => {
