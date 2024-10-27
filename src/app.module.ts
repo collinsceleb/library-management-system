@@ -17,6 +17,12 @@ import { SeedingService } from './common/seeding/seeding.service';
 import { SharedModule } from './common/shared/shared.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
+import { BooksModule } from './modules/books/books.module';
+import { AuthorsModule } from './modules/authors/authors.module';
+import { GenresModule } from './modules/genres/genres.module';
+import { PublishersModule } from './modules/publishers/publishers.module';
+import { BorrowRecordsModule } from './modules/borrow-records/borrow-records.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 import Redis from 'ioredis';
 import RedisStore from 'connect-redis';
 import * as session from 'express-session';
@@ -62,6 +68,12 @@ import * as passport from 'passport';
     RolesModule,
     PermissionsModule,
     SharedModule,
+    BooksModule,
+    AuthorsModule,
+    GenresModule,
+    PublishersModule,
+    BorrowRecordsModule,
+    CategoriesModule,
   ],
   controllers: [],
   providers: [SeedingService],
