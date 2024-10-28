@@ -21,7 +21,7 @@ export class Category {
 
   @ApiProperty({ example: 'Fiction' })
   @Column({ name: 'name', unique: true })
-  @Index('uq_category_name', { unique: true })
+  @Index('idx_category_name', { unique: true })
   name: string;
 
   @ApiProperty({ type: () => Category, nullable: true })

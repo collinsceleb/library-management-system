@@ -19,7 +19,7 @@ export class Publisher {
 
   @ApiProperty({ example: 'Publisher Name' })
   @Column({ name: 'name' })
-  @Index('IDX_publisher_name')
+  @Index('idx_publisher_name')
   name: string;
 
   @ApiProperty({ example: 'Publisher Location' })
@@ -28,7 +28,7 @@ export class Publisher {
 
   @ApiProperty({ example: 'Publisher Identifier Code' })
   @Column({ name: 'identifier_code', unique: true })
-  @Index('IDX_publisher_identifier_code')
+  @Index('idx_publisher_identifier_code')
   identifierCode: string;
 
   @ApiProperty({ type: () => Book, isArray: true })

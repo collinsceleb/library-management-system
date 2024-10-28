@@ -8,7 +8,7 @@ export class BorrowRecord {
   @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174001' })
   @PrimaryGeneratedColumn('uuid', {
     name: 'id',
-    primaryKeyConstraintName: 'pk_borrow_record_id',
+    primaryKeyConstraintName: 'PK_borrow_record_id',
   })
   id: string;
 
