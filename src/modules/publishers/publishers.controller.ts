@@ -9,9 +9,9 @@ import { ApiTags } from '@nestjs/swagger';
 export class PublishersController {
   constructor(private readonly publishersService: PublishersService) {}
 
-  @Post()
-  create(@Body() createPublisherDto: CreatePublisherDto) {
-    return this.publishersService.create(createPublisherDto);
+  @Post('create-publisher')
+  async create(@Body() createPublisherDto: CreatePublisherDto) {
+    return await this.publishersService.createPublisher(createPublisherDto);
   }
 
   @Get()
