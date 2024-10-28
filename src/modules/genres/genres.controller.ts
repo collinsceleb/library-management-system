@@ -10,7 +10,7 @@ import {
 import { GenresService } from './genres.service';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiFoundResponse, ApiTags } from '@nestjs/swagger';
 import { CreateSubGenreDto } from './dto/create-sub-genre.dto';
 import { Genre } from './entities/genre.entity';
 
@@ -20,12 +20,22 @@ export class GenresController {
   constructor(private readonly genresService: GenresService) {}
 
   @Post('create-genre')
+  @ApiCreatedResponse({
+    type: Genre,
+    description: 'Genre created successfully',
+    status: 201,
+  })
   async createParentGenre(
     @Body() createGenreDto: CreateGenreDto,
   ): Promise<Genre> {
     return await this.genresService.createParentGenre(createGenreDto);
   }
   @Post('add-subgenre')
+  @ApiCreatedResponse({
+    type: Genre,
+    description: 'Sub Genre created successfully',
+    status: 201,
+  })
   async addSubGenre(
     @Body() createSubGenreDto: CreateSubGenreDto,
   ): Promise<Genre> {
@@ -33,12 +43,22 @@ export class GenresController {
   }
 
   @Get()
-  fetchAllGenres() {
-    return this.genresService.fetchAllGenres();
+  @ApiFoundResponse({
+    type: Genre,
+    description: 'Genres fetched successfully',
+    status: 201,
+  })
+  async fetchAllGenres(): Promise<Genre[]> {
+    return await this.genresService.fetchAllGenres();
   }
 
   @Get(':genreId')
-  async fetchGenreById(@Param('genreId') genreId: string) {
+  @ApiFoundResponse({
+    type: Genre,
+    description: 'Genre fetched successfully',
+    status: 201,
+  })
+  async fetchGenreById(@Param('genreId') genreId: string): Promise<Genre> {
     return await this.genresService.fetchGenreById(genreId);
   }
 

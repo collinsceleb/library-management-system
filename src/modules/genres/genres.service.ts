@@ -80,7 +80,7 @@ export class GenresService {
       genres.forEach((genre) => {
         if (genre.parent_genre_id) {
           const parent = genreMap.get(genre.parent_genre_id) as Genre;
-         if (!parent.subgenres) {
+          if (!parent.subgenres) {
             parent.subgenres = [];
           }
           parent.subgenres.push(genre);
@@ -88,11 +88,7 @@ export class GenresService {
           treeGenres.push(genre);
         }
       });
-
-
       return treeGenres;
-
-      return genres;
     } catch (error) {
       console.error('Error fetching genres:', error.message);
       throw new InternalServerErrorException(
@@ -107,13 +103,13 @@ export class GenresService {
       // Create a map for a lookup
       const genreMap = new Map<string, Genre>();
       const query = `
-        WITH RECURSIVE genre_tree AS (
-            SELECT * FROM genre WHERE id = $1
-            UNION
-            SELECT g.* FROM genre g
-            INNER JOIN genre_tree gt ON g.parent_genre_id = gt.id
-        )
-        SELECT * FROM genre_tree;
+         WITH RECURSIVE genre_tree AS (
+        SELECT * FROM genre WHERE id = $1
+        UNION
+        SELECT g.* FROM genre g
+        INNER JOIN genre_tree gt ON g.parent_genre_id = gt.id
+      )
+      SELECT * FROM genre_tree;
         `;
       const genres = await this.genreRepository.query(query, [genreId]);
       console.log(genres);
@@ -142,7 +138,7 @@ export class GenresService {
       // Find the root genre
       const rootGenre = genres.find(
         (genre: { parent_genre_id: Genre; id: string }) =>
-          !genre.parent_genre_id || genre.id == genreId,
+          !genre.parent_genre_id || genre.id === genreId,
       );
 
       return rootGenre;
@@ -154,7 +150,6 @@ export class GenresService {
       );
     }
   }
-
   update(id: number, updateGenreDto: UpdateGenreDto) {
     return `This action updates a #${id} genre`;
   }
