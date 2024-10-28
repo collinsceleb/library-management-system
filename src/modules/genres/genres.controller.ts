@@ -1,17 +1,35 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { GenresService } from './genres.service';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { CreateSubGenreDto } from './dto/create-sub-genre.dto';
+import { Genre } from './entities/genre.entity';
 
 @ApiTags('Genres')
 @Controller('genres')
 export class GenresController {
   constructor(private readonly genresService: GenresService) {}
 
-  @Post()
-  create(@Body() createGenreDto: CreateGenreDto) {
-    return this.genresService.create(createGenreDto);
+  @Post('create-genre')
+  async createParentGenre(
+    @Body() createGenreDto: CreateGenreDto,
+  ): Promise<Genre> {
+    return await this.genresService.createParentGenre(createGenreDto);
+  }
+  @Post('add-subgenre')
+  async addSubGenre(
+    @Body() createSubGenreDto: CreateSubGenreDto,
+  ): Promise<Genre> {
+    return await this.genresService.addSubGenre(createSubGenreDto);
   }
 
   @Get()
