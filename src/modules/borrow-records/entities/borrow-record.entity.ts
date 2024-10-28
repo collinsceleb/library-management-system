@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Book } from '../../books/entities/book.entity';
 
 @Entity('borrow_record')
@@ -27,4 +27,12 @@ export class BorrowRecord {
   @ApiProperty({ example: '2023-05-08T00:00:00.000Z' })
   @Column({ name: 'return_date', type: 'timestamptz', nullable: true })
   returnDate: Date;
+
+  @ApiProperty({ example: '2023-05-01T00:00:00.000Z' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @ApiProperty({ example: '2023-05-01T00:00:00.000Z' })
+  @CreateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
 }

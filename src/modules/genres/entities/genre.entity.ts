@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Book } from '../../books/entities/book.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   Index,
   JoinColumn,
@@ -38,4 +39,12 @@ export class Genre {
   @ApiProperty({ type: () => Book, isArray: true })
   @OneToMany(() => Book, (book) => book.genres)
   books: Book[];
+
+  @ApiProperty({ example: '2023-05-01T00:00:00.000Z' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @ApiProperty({ example: '2023-05-01T00:00:00.000Z' })
+  @CreateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
 }

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Book } from '../../books/entities/book.entity';
-import { Column, Entity, Index, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('authors')
 export class Author {
@@ -23,4 +23,12 @@ export class Author {
   @ApiProperty({ type: () => Book, isArray: true })
   @ManyToMany(() => Book, (book) => book.authors)
   books: Book[];
+
+  @ApiProperty({ example: '2023-05-01T00:00:00.000Z' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @ApiProperty({ example: '2023-05-01T00:00:00.000Z' })
+  @CreateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
 }
