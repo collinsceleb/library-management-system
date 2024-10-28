@@ -32,7 +32,7 @@ export class Genre {
   parentGenre: Genre;
 
   @ApiProperty({ type: () => Genre, isArray: true, nullable: true })
-  @ManyToMany(() => Genre, (genre) => genre.parentGenre)
+  @OneToMany(() => Genre, (genre) => genre.parentGenre)
   subgenres: Genre[];
 
   @ApiProperty({ type: () => Book, isArray: true })

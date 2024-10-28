@@ -4,6 +4,7 @@ import {
   Column,
   Entity,
   Index,
+  JoinColumn,
   ManyToMany,
   ManyToOne,
   OneToMany,
@@ -29,6 +30,8 @@ export class Category {
     nullable: true,
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'parent_category_id', referencedColumnName: 'id' })
+  @Index('idx_category_parent_category_id')
   parentCategory: Category;
 
   @ApiProperty({ type: () => Category, isArray: true })
