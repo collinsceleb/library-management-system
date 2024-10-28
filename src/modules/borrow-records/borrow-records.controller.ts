@@ -2,7 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { BorrowRecordsService } from './borrow-records.service';
 import { CreateBorrowRecordDto } from './dto/create-borrow-record.dto';
 import { UpdateBorrowRecordDto } from './dto/update-borrow-record.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Borrow Records')
 @Controller('borrow-records')
 export class BorrowRecordsController {
   constructor(private readonly borrowRecordsService: BorrowRecordsService) {}

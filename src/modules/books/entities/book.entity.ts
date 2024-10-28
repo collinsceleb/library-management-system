@@ -19,7 +19,7 @@ export class Book {
   @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174001' })
   @PrimaryGeneratedColumn('uuid', {
     name: 'id',
-    primaryKeyConstraintName: 'pk_book_id',
+    primaryKeyConstraintName: 'PK_book_id',
   })
   id: string;
 

@@ -2,7 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { GenresService } from './genres.service';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Genres')
 @Controller('genres')
 export class GenresController {
   constructor(private readonly genresService: GenresService) {}

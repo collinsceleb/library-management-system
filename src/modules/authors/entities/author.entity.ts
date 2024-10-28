@@ -7,13 +7,13 @@ export class Author {
   @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174001' })
   @PrimaryGeneratedColumn('uuid', {
     name: 'id',
-    primaryKeyConstraintName: 'pk_author_id',
+    primaryKeyConstraintName: 'PK_author_id',
   })
   id: string;
 
   @ApiProperty({ example: 'J. K. Rowling' })
   @Column({ name: 'name', unique: true })
-  @Index('uq_author_name', { unique: true })
+  @Index('idx_author_name', { unique: true })
   name: string;
 
   @ApiProperty({ example: 'J. K. Rowling is a British author...' })
