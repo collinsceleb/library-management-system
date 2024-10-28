@@ -33,13 +33,13 @@ export class GenresController {
   }
 
   @Get()
-  findAll() {
-    return this.genresService.findAll();
+  fetchAllGenres() {
+    return this.genresService.fetchAllGenres();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.genresService.findOne(+id);
+  @Get(':genreId')
+  async fetchGenreById(@Param('genreId') genreId: string) {
+    return await this.genresService.fetchGenreById(genreId);
   }
 
   @Patch(':id')
