@@ -1,6 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Book } from '../../books/entities/book.entity';
-import { Column, Entity, Index, JoinColumn, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('genre')
 export class Genre {
@@ -17,7 +26,7 @@ export class Genre {
   name: string;
 
   @ApiProperty({ type: () => Genre, nullable: true })
-  @ManyToMany(() => Genre, (genre) => genre.subgenres)
+  @ManyToOne(() => Genre, (genre) => genre.subgenres)
   @JoinColumn({ name: 'parent_genre_id', referencedColumnName: 'id' })
   @Index('idx_genre_parent_genre_id')
   parentGenre: Genre;
@@ -27,6 +36,6 @@ export class Genre {
   subgenres: Genre[];
 
   @ApiProperty({ type: () => Book, isArray: true })
-  @ManyToMany(() => Book, (book) => book.genres)
+  @OneToMany(() => Book, (book) => book.genres)
   books: Book[];
 }
