@@ -1,5 +1,4 @@
 import {
-  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -78,8 +77,10 @@ export class GenresService {
 
       // Assign parents to children
       genres.forEach((genre) => {
+        console.log(genre.parent_genre_id);
+        
         if (genre.parent_genre_id) {
-          const parent = genreMap.get(genre.parent_genre_id) as Genre;
+          const parent = genreMap.get(genre.parent_genre_id);
           if (!parent.subgenres) {
             parent.subgenres = [];
           }
@@ -127,7 +128,7 @@ export class GenresService {
       // Assign parents to children
       genres.forEach((genre) => {
         if (genre.parent_genre_id) {
-          const parent = genreMap.get(genre.parent_genre_id) as Genre;
+          const parent = genreMap.get(genre.parent_genre_id);
           if (parent) {
             parent.subgenres = parent.subgenres || [];
             parent.subgenres.push(genre);
