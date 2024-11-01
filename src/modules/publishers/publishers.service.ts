@@ -1,5 +1,4 @@
 import {
-  Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -13,7 +12,7 @@ import { Publisher } from './entities/publisher.entity';
 export class PublishersService {
   constructor(
     @InjectRepository(Publisher)
-    private publisherRepository: Repository<Publisher>,
+    private readonly publisherRepository: Repository<Publisher>,
   ) {}
 
   async generateIdentifierCode(
@@ -32,7 +31,7 @@ export class PublishersService {
     });
     while (existingPublisher) {
       // If it exists, generate a new identifierCode
-      identifierCode = `${formattedName}${formattedLocation}-${Math.floor(100 + Math.random() * 900)}`;
+      identifierCode = `${formattedName}-${formattedLocation}-${Math.floor(100 + Math.random() * 900)}`;
     }
     return identifierCode;
   }
