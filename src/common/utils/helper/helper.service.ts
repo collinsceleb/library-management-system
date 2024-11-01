@@ -33,4 +33,28 @@ export class HelperService {
       );
     }
   }
+
+  /**
+   * Generates a unique identifier code by combining the initials of a name,
+   * a location segment, and a random 3-digit number.
+   * @param name - The name from which initials will be extracted.
+   * @param location - A location string used to generate part of the code.
+   * @returns A unique identifier code.
+   */
+  async generateIdentifierCode(
+    name: string,
+    location?: string,
+    checkUnique?: (identifierCode: string) => Promise<boolean>,
+  ): Promise<string> {
+    const formattedName = name.slice(0, 3).toUpperCase();
+    const formattedLocation = location
+      ? location.slice(0, 3).toUpperCase()
+      : 'AAA';
+    let identifierCode = '';
+    do {
+      const randomNumber = Math.floor(100 + Math.random() * 900);
+      identifierCode = `${formattedName}-${formattedLocation}-${randomNumber}`;
+    } while (checkUnique && !(await checkUnique(identifierCode)));
+    return identifierCode;
+  }
 }
