@@ -9,9 +9,9 @@ import { ApiTags } from '@nestjs/swagger';
 export class AuthorsController {
   constructor(private readonly authorsService: AuthorsService) {}
 
-  @Post()
-  create(@Body() createAuthorDto: CreateAuthorDto) {
-    return this.authorsService.create(createAuthorDto);
+  @Post('create-author')
+  async createAuthor(@Body() createAuthorDto: CreateAuthorDto) {
+    return await this.authorsService.createAuthor(createAuthorDto);
   }
 
   @Get()

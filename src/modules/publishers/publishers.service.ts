@@ -7,34 +7,16 @@ import { UpdatePublisherDto } from './dto/update-publisher.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Publisher } from './entities/publisher.entity';
+import { HelperService } from '../../common/utils/helper/helper.service';
 
 @Injectable()
 export class PublishersService {
   constructor(
     @InjectRepository(Publisher)
     private readonly publisherRepository: Repository<Publisher>,
+    private readonly helperService: HelperService,
   ) {}
 
-  async generateIdentifierCode(
-    createPublisherDto: CreatePublisherDto,
-  ): Promise<string> {
-    const { name, location } = createPublisherDto;
-    const formattedName = name.slice(0, 3).toUpperCase();
-    const formattedLocation = location
-      ? location.slice(0, 3).toUpperCase()
-      : 'AAA';
-    const randomNumber = Math.floor(100 + Math.random() * 900);
-    let identifierCode = `${formattedName}-${formattedLocation}-${randomNumber}`;
-    // Check if the identifierCode already exists in the database
-    const existingPublisher = await this.publisherRepository.findOne({
-      where: { identifierCode },
-    });
-    while (existingPublisher) {
-      // If it exists, generate a new identifierCode
-      identifierCode = `${formattedName}-${formattedLocation}-${Math.floor(100 + Math.random() * 900)}`;
-    }
-    return identifierCode;
-  }
   /**
    * Create a new publisher
    * @param createPublisherDto
@@ -46,7 +28,7 @@ export class PublishersService {
     try {
       const { name, location } = createPublisherDto;
       const identifierCode =
-        await this.generateIdentifierCode(createPublisherDto);
+        await this.helperService.generateIdentifierCode(name, location);
       const publisher = this.publisherRepository.create({
         name,
         location,
