@@ -2,6 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { LocationData } from 'src/common/interface/location-data/location-data.interface';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class HelperService {
@@ -37,24 +38,26 @@ export class HelperService {
   /**
    * Generates a unique identifier code by combining the initials of a name,
    * a location segment, and a random 3-digit number.
-   * @param name - The name from which initials will be extracted.
+   * @param initials - The name from which initials will be extracted.
    * @param location - A location string used to generate part of the code.
    * @returns A unique identifier code.
    */
   async generateIdentifierCode(
-    name: string,
-    location?: string,
-    checkUnique?: (identifierCode: string) => Promise<boolean>,
+    initials: string,
+    repository: Repository<any>,
   ): Promise<string> {
-    const formattedName = name.slice(0, 3).toUpperCase();
-    const formattedLocation = location
-      ? location.slice(0, 3).toUpperCase()
-      : 'AAA';
-    let identifierCode = '';
+    let identifierCode: string;
+    let isUnique = false;
     do {
       const randomNumber = Math.floor(100 + Math.random() * 900);
-      identifierCode = `${formattedName}-${formattedLocation}-${randomNumber}`;
-    } while (checkUnique && !(await checkUnique(identifierCode)));
+      identifierCode = `${initials}-${randomNumber}`;
+      const existingCode = await repository.exists({
+        where: { identifierCode },
+      });
+      console.log('existingCode', existingCode);
+      
+      isUnique = !existingCode;
+    } while (!isUnique);
     return identifierCode;
   }
 }

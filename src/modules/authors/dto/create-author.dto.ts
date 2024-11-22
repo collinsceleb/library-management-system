@@ -3,12 +3,20 @@ import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CreateAuthorDto {
   @ApiProperty({
-    example: 'Author Name',
-    description: 'Name of the Author',
+    example: 'Author First Name',
+    description: 'First Name of the Author',
   })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  firstName: string;
+
+  @ApiProperty({
+    example: 'Author Last Name',
+    description: 'Last Name of the Author',
+  })
+  @IsString()
+  @IsNotEmpty()
+  lastName: string;
 
   @ApiProperty({
     example: 'Author Location',

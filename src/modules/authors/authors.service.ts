@@ -9,7 +9,8 @@ import { HelperService } from '../../common/utils/helper/helper.service';
 @Injectable()
 export class AuthorsService {
   constructor(
-    @InjectRepository(Author) private readonly authorRepository: Repository<Author>,
+    @InjectRepository(Author)
+    private readonly authorRepository: Repository<Author>,
     private readonly helperService: HelperService,
   ) {}
   /**
@@ -19,20 +20,26 @@ export class AuthorsService {
    */
   async createAuthor(createAuthorDto: CreateAuthorDto) {
     try {
-      const {name, bio } = createAuthorDto;
-      const identifierCode = await this.helperService.generateIdentifierCode(name);
+      const { firstName, lastName, bio } = createAuthorDto;
+      const initialsCode = `${firstName[0]}${lastName[1]}`;
+      const initials = initialsCode.toUpperCase();
+      const identifierCode = await this.helperService.generateIdentifierCode(
+        initials,
+        this.authorRepository,
+      );
       const author = this.authorRepository.create({
-        name,
+        firstName,
+        lastName,
         bio,
-        identifierCode
+        identifierCode,
       });
       const savedAuthor = await this.authorRepository.save(author);
       return savedAuthor;
     } catch (error) {
-      console.error('Error creating author:', error.message);
+      console.error('Error creating author:', error);
       throw new InternalServerErrorException(
         'An error occurred creating author. Please check server logs for details.',
-        error.message,
+        error,
       );
     }
   }
