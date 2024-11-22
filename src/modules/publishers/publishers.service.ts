@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreatePublisherDto } from './dto/create-publisher.dto';
 import { UpdatePublisherDto } from './dto/update-publisher.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -27,8 +24,14 @@ export class PublishersService {
   ): Promise<Publisher> {
     try {
       const { name, location } = createPublisherDto;
-      const identifierCode =
-        await this.helperService.generateIdentifierCode(name, location);
+      const initials = name
+        .split(' ')
+        .map((word) => word[0].toUpperCase())
+        .join('');
+      const identifierCode = await this.helperService.generateIdentifierCode(
+        initials,
+        this.publisherRepository,
+      );
       const publisher = this.publisherRepository.create({
         name,
         location,

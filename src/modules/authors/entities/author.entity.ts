@@ -1,9 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Book } from '../../books/entities/book.entity';
-import { Column, CreateDateColumn, Entity, Index, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('authors')
-@Index('idx_author_name_code', ['name', 'identifierCode'], { unique: true})
+@Index('idx_author_name_code', ['firstName', 'lastName', 'identifierCode'], {
+  unique: true,
+})
 export class Author {
   @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174001' })
   @PrimaryGeneratedColumn('uuid', {
@@ -13,15 +22,19 @@ export class Author {
   id: string;
 
   @ApiProperty({ example: 'J. K. Rowling' })
-  @Column({ name: 'name', unique: true })
-  name: string;
+  @Column({ name: 'first_name' })
+  firstName: string;
+
+  @ApiProperty({ example: 'J. K. Rowling' })
+  @Column({ name: 'last_name' })
+  lastName: string;
 
   @ApiProperty({ example: 'J. K. Rowling is a British author...' })
   @Column({ name: 'bio', nullable: true })
   bio: string;
 
   @ApiProperty({ example: 'Author Identifier Code' })
-  @Column({ name: 'identifier_code', unique: true })
+  @Column({ name: 'identifier_code'})
   identifierCode: string;
 
   @ApiProperty({ type: () => Book, isArray: true })

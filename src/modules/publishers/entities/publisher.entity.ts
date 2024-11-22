@@ -28,7 +28,7 @@ export class Publisher {
   location: string;
 
   @ApiProperty({ example: 'Publisher Identifier Code' })
-  @Column({ name: 'identifier_code', unique: true })
+  @Column({ name: 'identifier_code'})
   identifierCode: string;
 
   @ApiProperty({ type: () => Book, isArray: true })
