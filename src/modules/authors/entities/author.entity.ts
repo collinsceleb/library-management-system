@@ -10,9 +10,13 @@ import {
 } from 'typeorm';
 
 @Entity('authors')
-@Index('idx_author_name_code', ['firstName', 'lastName', 'identifierCode'], {
-  unique: true,
-})
+@Index(
+  'idx_author_name_code',
+  ['firstName', 'lastName', 'identifierCode', 'nationality', 'birthDate'],
+  {
+    unique: true,
+  },
+)
 export class Author {
   @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174001' })
   @PrimaryGeneratedColumn('uuid', {
@@ -29,13 +33,21 @@ export class Author {
   @Column({ name: 'last_name' })
   lastName: string;
 
+  @ApiProperty({ example: 'United Kingdom' })
+  @Column({ name: 'nationality' })
+  nationality: string;
+
+  @ApiProperty({ example: '1965-07-31' })
+  @Column({ name: 'birth_date', type: 'date' })
+  birthDate: Date;
+
+  @ApiProperty({ example: 'Author Identifier Code' })
+  @Column({ name: 'identifier_code' })
+  identifierCode: string;
+
   @ApiProperty({ example: 'J. K. Rowling is a British author...' })
   @Column({ name: 'bio', nullable: true })
   bio: string;
-
-  @ApiProperty({ example: 'Author Identifier Code' })
-  @Column({ name: 'identifier_code'})
-  identifierCode: string;
 
   @ApiProperty({ type: () => Book, isArray: true })
   @ManyToMany(() => Book, (book) => book.authors)

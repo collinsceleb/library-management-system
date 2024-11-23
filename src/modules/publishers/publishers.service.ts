@@ -31,6 +31,7 @@ export class PublishersService {
       const identifierCode = await this.helperService.generateIdentifierCode(
         initials,
         this.publisherRepository,
+        { name },
       );
       const publisher = this.publisherRepository.create({
         name,

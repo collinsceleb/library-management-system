@@ -20,23 +20,27 @@ export class AuthorsService {
    */
   async createAuthor(createAuthorDto: CreateAuthorDto) {
     try {
-      const { firstName, lastName, bio } = createAuthorDto;
+      const { firstName, lastName, bio, nationality, birthDate } =
+        createAuthorDto;
       const initialsCode = `${firstName[0]}${lastName[1]}`;
       const initials = initialsCode.toUpperCase();
       const identifierCode = await this.helperService.generateIdentifierCode(
         initials,
         this.authorRepository,
+        { firstName, lastName, nationality, birthDate },
       );
       const author = this.authorRepository.create({
         firstName,
         lastName,
         bio,
         identifierCode,
+        birthDate,
+        nationality,
       });
       const savedAuthor = await this.authorRepository.save(author);
       return savedAuthor;
     } catch (error) {
-      console.error('Error creating author:', error);
+      console.error('Error creating author:', error.message);
       throw new InternalServerErrorException(
         'An error occurred creating author. Please check server logs for details.',
         error,

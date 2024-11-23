@@ -1,5 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsDate, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateAuthorDto {
   @ApiProperty({
@@ -17,6 +18,23 @@ export class CreateAuthorDto {
   @IsString()
   @IsNotEmpty()
   lastName: string;
+
+  @ApiProperty({
+    example: 'Author Nationality',
+    description: 'Nationality of the Author',
+  })
+  @IsString()
+  @IsNotEmpty()
+  nationality: string;
+
+  @ApiProperty({
+    example: 'Author Birth Date',
+    description: 'Birth Date of the Author',
+  })
+  @IsNotEmpty()
+  @Type(() => Date)
+  @IsDate()
+  birthDate: Date;
 
   @ApiProperty({
     example: 'Author Location',
