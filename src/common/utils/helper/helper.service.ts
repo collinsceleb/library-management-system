@@ -45,8 +45,23 @@ export class HelperService {
   async generateIdentifierCode(
     initials: string,
     repository: Repository<any>,
+    entityData: {
+      firstName?: string;
+      lastName?: string;
+      name?: string;
+      nationality?: string;
+      birthDate?: Date;
+    },
   ): Promise<string> {
     let identifierCode: string;
+    const existingEntity = await repository.findOne({
+      where: entityData,
+    });
+    console.log('existingEntity', existingEntity);
+
+    if (existingEntity?.identifierCode) {
+      return existingEntity.identifierCode;
+    }
     let isUnique = false;
     do {
       const randomNumber = Math.floor(100 + Math.random() * 900);
@@ -55,7 +70,7 @@ export class HelperService {
         where: { identifierCode },
       });
       console.log('existingCode', existingCode);
-      
+
       isUnique = !existingCode;
     } while (!isUnique);
     return identifierCode;
