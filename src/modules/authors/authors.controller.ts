@@ -15,8 +15,8 @@ export class AuthorsController {
   }
 
   @Get()
-  findAll() {
-    return this.authorsService.findAll();
+  async fetchAllAuthors() {
+    return await this.authorsService.fetchAllAuthors();
   }
 
   @Get(':id')

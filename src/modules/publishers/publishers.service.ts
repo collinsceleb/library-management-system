@@ -49,8 +49,17 @@ export class PublishersService {
     }
   }
 
-  findAll() {
-    return `This action returns all publishers`;
+  async fetchAllPublishers(): Promise<Publisher[]> {
+    try {
+      const publishers = await this.publisherRepository.find();
+      return publishers;
+    } catch (error) {
+      console.error('Error fetching publishers:', error.message);
+      throw new InternalServerErrorException(
+        'An error occurred fetching publishers. Please check server logs for details.',
+        error,
+      );
+    }
   }
 
   findOne(id: number) {

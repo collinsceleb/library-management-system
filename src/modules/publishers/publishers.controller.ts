@@ -15,8 +15,8 @@ export class PublishersController {
   }
 
   @Get()
-  findAll() {
-    return this.publishersService.findAll();
+  async fetchAllPublishers() {
+    return await this.publishersService.fetchAllPublishers();
   }
 
   @Get(':id')
@@ -25,7 +25,10 @@ export class PublishersController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePublisherDto: UpdatePublisherDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updatePublisherDto: UpdatePublisherDto,
+  ) {
     return this.publishersService.update(+id, updatePublisherDto);
   }
 
