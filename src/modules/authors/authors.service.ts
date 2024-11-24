@@ -48,8 +48,17 @@ export class AuthorsService {
     }
   }
 
-  findAll() {
-    return `This action returns all authors`;
+  async fetchAllAuthors(): Promise<Author[]> {
+    try {
+      const authors = await this.authorRepository.find();
+      return authors;
+    } catch (error) {
+      console.error('Error fetching authors:', error.message);
+      throw new InternalServerErrorException(
+        'An error occurred fetching authors. Please check server logs for details.',
+        error,
+      );
+    }
   }
 
   findOne(id: number) {
