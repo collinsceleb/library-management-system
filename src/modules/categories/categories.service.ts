@@ -1,5 +1,4 @@
 import {
-  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -15,7 +14,7 @@ import { CreateSubCategoryDto } from './dto/create-sub-category.dto';
 export class CategoriesService {
   constructor(
     @InjectRepository(Category)
-    private categoryRepository: Repository<Category>,
+    private readonly categoryRepository: Repository<Category>,
   ) {}
   async createParentCategory(
     createCategoryDto: CreateCategoryDto,
@@ -42,7 +41,7 @@ export class CategoriesService {
       });
       if (!parentCategory) {
         throw new NotFoundException(
-          `Parent category with id ${parentCategory} not found`,
+          `Parent category with id ${parentCategoryId} not found`,
         );
       }
       const subcategory = this.categoryRepository.create({
@@ -85,7 +84,7 @@ export class CategoriesService {
         if (category.parent_category_id) {
           const parent = categoryMap.get(
             category.parent_category_id,
-          ) as Category;
+          );
           if (!parent.subCategories) {
             parent.subCategories = [];
           }
@@ -137,7 +136,7 @@ export class CategoriesService {
         if (category.parent_category_id) {
           const parent = categoryMap.get(
             category.parent_category_id,
-          ) as Category;
+          );
           if (parent) {
             parent.subCategories = parent.subCategories || [];
             parent.subCategories.push(category);
